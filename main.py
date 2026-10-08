@@ -93,8 +93,7 @@ if uploaded_file is not None:
         if st.button("Generate Answer") and user_query:
             with st.spinner("Executing pure hybrid retrieval and page expansion..."):
                 
-                # PURE RETRIEVAL: No hardcoded if/else string matching hacks. 
-                # The raw user query goes directly to both retrievers.
+                # PURE RETRIEVAL: No hardcoded if/else string matching hacks.
                 bm25_docs = bm25_retriever.invoke(user_query)
                 vector_docs = vector_retriever.invoke(user_query)
                 
@@ -116,9 +115,9 @@ if uploaded_file is not None:
                         
                 context = "\n\n".join(expanded_context_parts)
 
-                # Initialize Groq client
+                # Initialize Groq client with openai/gpt-oss-20b
                 groq_client = ChatGroq(
-                    model="llama-3.1-8b-instant",
+                    model="openai/gpt-oss-20b",
                     temperature=0.0,
                     groq_api_key=groq_api_key
                 )
