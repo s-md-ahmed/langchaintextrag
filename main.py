@@ -97,13 +97,7 @@ if uploaded_file is not None:
                 search_query = user_query
                 query_lower = user_query.lower()
                 
-                if "fraud" in query_lower or "withdraw" in query_lower:
-                    search_query = user_query + " fraud withdraw fee refund exception policy"
-                elif "deposit" in query_lower:
-                    search_query = user_query + " deposit amount duration months"
-                elif "work hour" in query_lower:
-                    search_query = user_query + " work hours visa fortnight semester"
-
+                
                 # Fetch results from retrievers
                 bm25_docs = bm25_retriever.invoke(search_query)
                 vector_docs = vector_retriever.invoke(search_query)
