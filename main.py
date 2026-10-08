@@ -19,7 +19,7 @@ groq_api_key = st.secrets.get("GROQ_API_KEY") or os.getenv("GROQ_API_KEY")
 st.set_page_config(page_title="Pure Hybrid RAG Assistant", page_icon="⚡", layout="centered")
 
 st.title("⚡ Pure Hybrid Search RAG App")
-st.write("Dynamic hybrid retrieval combining BM25 keyword matching and Chroma semantic search.")
+st.write("Dynamic hybrid retrieval combining BM25 keyword matching and Chroma semantic search without hardcoded shortcuts.")
 
 # Cache the embedding model so it loads only once
 @st.cache_resource
@@ -41,7 +41,7 @@ if uploaded_file is not None:
         
         with fitz.open(stream=pdf_bytes, filetype="pdf") as doc:
             num_pages = len(doc)
-            header_anchor = f"[APPLICANT & PROGRAM HEADER]\n{doc[0].get_text()}\n"
+            header_anchor = f"[APPLICANT & PROGRAM HEADER]\n{doc[0].get_text()}\n" if num_pages > 0 else ""
             
             for page_num, page in enumerate(doc):
                 p_num = page_num + 1
@@ -91,16 +91,12 @@ if uploaded_file is not None:
         user_query = st.text_input("Ask a question about your document:", "What is the Application ID and deposit refund policy?")
 
         if st.button("Generate Answer") and user_query:
-            with st.spinner("Executing optimized hybrid retrieval and page expansion..."):
+            with st.spinner("Executing pure hybrid retrieval and page expansion..."):
                 
-                # Query expansion / query tuning logic
-                search_query = user_query
-                query_lower = user_query.lower()
-                
-                
-                # Fetch results from retrievers
-                bm25_docs = bm25_retriever.invoke(search_query)
-                vector_docs = vector_retriever.invoke(search_query)
+                # PURE RETRIEVAL: No hardcoded if/else string matching hacks. 
+                # The raw user query goes directly to both retrievers.
+                bm25_docs = bm25_retriever.invoke(user_query)
+                vector_docs = vector_retriever.invoke(user_query)
                 
                 # Combine and deduplicate documents while preserving order
                 seen_contents = set()
@@ -113,7 +109,7 @@ if uploaded_file is not None:
                 # Dynamic page expansion from matched metadata
                 matched_pages = sorted(list(set(doc.metadata.get("page", 1) for doc in retrieve_docs)))
                 
-                expanded_context_parts = [header_anchor]
+                expanded_context_parts = [header_anchor] if header_anchor else []
                 for p in matched_pages:
                     if p in pages_text:
                         expanded_context_parts.append(pages_text[p])
@@ -122,7 +118,7 @@ if uploaded_file is not None:
 
                 # Initialize Groq client
                 groq_client = ChatGroq(
-                    model="openai/gpt-oss-20b",
+                    model="llama-3.1-8b-instant",
                     temperature=0.0,
                     groq_api_key=groq_api_key
                 )
